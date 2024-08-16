@@ -10,9 +10,16 @@ Vermonth 是一个基于 Gin 的增强工具，提供了一系列增强工具来
 
 ```go
 type TestController struct {
-    _ any `path:"/test"`
+	// 定义该控制器的总路径
+    _ any `path:"/api"`
+
+	// 方法
 	TestMethod func(a int, b int) any `method:"GET" path:"/test" params:"a,b"`
 }
+
+// 例如
+// 访问 /api/test 则调用 TestMethod 方法
+
 
 // 定义控制器
 func TestMethod(a int, b int) any {
@@ -27,7 +34,7 @@ func NewTestController() *TestController {
 
 // 注册控制器
 r := gin.Default()
-vermonth.RegisterController(r, "/api", NewTestController())
+vermonth.RegisterController(r, NewTestController())
 
 // 访问 /api/test
 
