@@ -2,6 +2,8 @@
 
 Vermonth 是一个基于 Gin 的增强工具，提供了一系列增强工具来帮助 Gin 的开发。
 
+<img src="./img/banner2.jpg" alt="vermonth" width="400" />
+
 ### 控制器增强
 
 使用Tag进行书写路由和请求参数。
