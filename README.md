@@ -37,12 +37,19 @@ vermonth会自动将请求参数注入到控制器方法中，无需再通过gin
 
 ```go
 type TestController struct {
+	TestMethod func(a int, b int) any `method:"GET" path:"/test" params:"a,b"`
 	TestMethod2 func(req *Request) any `method:"GET" path:"/test" params:"req"`
 }
 
 type Request struct {
 	A int `json:"a"`
 	B int `json:"b"`
+}
+
+func TestMethod(a int, b int) any {
+	return gin.H{
+		"message": "Hello, Gin!" + strconv.Itoa(a+b),
+	}
 }
 
 func TestMethod2(req *Request) any {
