@@ -42,7 +42,8 @@ vermonth.RegisterController(r, NewTestController())
 
 #### 参数注入
 
-vermonth会自动将请求参数注入到控制器方法中，无需再通过gin获取，只要书写和Tag中相同的参数名即可。
+- vermonth会自动将请求参数注入到控制器方法中，无需再通过gin获取，只要书写和Tag中相同的参数名即可。
+- 参数获取遵循gin的规范，你仍可以使用gin的全部功能。
 
 ```go
 type TestController struct {
