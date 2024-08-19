@@ -129,6 +129,17 @@ func generateApi(controllerDefinition *controllerDefinition, methodName string, 
 		aopContext.ControllerInformation = controllerInformation
 		aopContext.Fn = func() {
 
+			// 公共参数注入
+			commonParams := make(map[string]interface{})
+			for _, paramHandler := range paramHandlers {
+				if paramHandler.expression.MatchString(methodFullName) {
+					singleParams := paramHandler.paramsFunc()
+					for k, v := range singleParams {
+						commonParams[k] = v
+					}
+				}
+			}
+
 			// 拼装参数
 			for i := 0; i < numIn; i++ {
 				// 字段提取顺序，优先从body中取，如果没有body，则从query中取
@@ -140,7 +151,12 @@ func generateApi(controllerDefinition *controllerDefinition, methodName string, 
 				if paramName == "" {
 					paramName = "args" + strconv.Itoa(i)
 				}
-				aopContext.Arguments[i] = extractParamFromContext(c, methodParams, paramName).Interface()
+				// 如果有公共参数，则优先使用公共参数
+				if value, ok := commonParams[paramName]; ok {
+					aopContext.Arguments[i] = value
+				} else {
+					aopContext.Arguments[i] = extractParamFromContext(c, methodParams, paramName).Interface()
+				}
 				aopContext.ArgumentNames[i] = paramName
 			}
 
@@ -269,3 +285,4 @@ func getStructName(i interface{}) string {
 	}
 	return ""
 }
+

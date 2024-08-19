@@ -69,6 +69,23 @@ func TestMethod2(req *Request) any {
 }
 ```
 
+### 公共参数注入
+- 当多个控制器需要使用相同的参数时，可以通过公共参数注入来实现。
+```go
+// 公共参数注入
+RegisterParamsFunc("*.*", func() map[string]interface{} {
+	return map[string]interface{}{
+		"token": "123",
+	}
+})
+
+```
+
+
+### 自定义参数解析
+- 待开发
+
+
 ### 切面
 
 vermonth支持AOP，可以通过正则表达式来匹配方法，并执行相应的AOP函数。
@@ -186,3 +203,4 @@ vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.AopContext) {
 	aopContext.Call()
 })
 ```
+

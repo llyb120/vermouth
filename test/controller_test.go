@@ -22,6 +22,9 @@ type TestController struct {
 
 	// 事务
 	TestTransaction func(tx *sql.Tx, c *gin.Context) any `method:"GET" path:"/test4" transaction:"true"`
+
+	// 公共参数注入
+	TestParams func(token string) any `method:"GET" path:"/test5" params:"token"`
 }
 
 func NewTestController() *TestController {
@@ -30,6 +33,7 @@ func NewTestController() *TestController {
 		TestMethod2:     DoTestMethod2,
 		TestError:       DoTestError,
 		TestTransaction: DoTestTransaction,
+		TestParams:      DoTestParams,
 	}
 }
 
@@ -49,6 +53,12 @@ func DoTestMethod(a int, b int, params map[string]interface{}) any {
 		"message": "Hello, Gin!" + strconv.Itoa(a+b),
 	}
 }
+
+func DoTestParams(token string) any {
+	return gin.H{
+		"token": token,
+	}
+}	
 
 type Request struct {
 	A int `json:"a"`
