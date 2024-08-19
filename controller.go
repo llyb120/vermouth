@@ -78,6 +78,8 @@ func registerController(r *gin.Engine, controller any) {
 		params := field.Tag.Get("params")
 		if params != "" {
 			api.Params = strings.Split(params, ",")
+		} else {
+			api.Params = []string{}
 		}
 		// 事务
 		transaction := field.Tag.Get("transaction")
@@ -122,7 +124,13 @@ func generateApi(controllerDefinition *controllerDefinition, methodName string, 
 			for i := 0; i < numIn; i++ {
 				// 字段提取顺序，优先从body中取，如果没有body，则从query中取
 				methodParams := methodType.In(i)
-				paramName := api.Params[i]
+				var paramName string
+				if len(api.Params) > i {
+					paramName = api.Params[i]
+				}
+				if paramName == "" {
+					paramName = "args" + strconv.Itoa(i)
+				}
 				aopContext.Arguments[i] = extractParamFromContext(c, methodParams, paramName).Interface()
 				aopContext.ArgumentNames[i] = paramName
 			}
@@ -189,6 +197,8 @@ func extractParamFromContext(c *gin.Context, methodParams reflect.Type, paramNam
 			if ok {
 				return reflect.ValueOf(tx)
 			}
+		} else if methodParams.AssignableTo(reflect.TypeOf((*gin.Context)(nil))) {
+			return reflect.ValueOf(c)
 		}
 		elemValue := extractParamFromContext(c, methodParams.Elem(), paramName)
 		ptrValue := reflect.New(methodParams.Elem())

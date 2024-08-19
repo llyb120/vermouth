@@ -21,7 +21,7 @@ type TestController struct {
 	TestError func() any `method:"GET" path:"/test3"`
 
 	// 事务
-	TestTransaction func(tx *sql.Tx) any `method:"GET" path:"/test4" params:"tx" transaction:"true"`
+	TestTransaction func(tx *sql.Tx) any `method:"GET" path:"/test4" transaction:"true"`
 }
 
 func NewTestController() *TestController {
