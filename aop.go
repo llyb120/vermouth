@@ -1,10 +1,10 @@
 package vermouth
 
 import (
+	"github.com/gin-gonic/gin"
 	"regexp"
 	"slices"
 	"strings"
-	"github.com/gin-gonic/gin"
 )
 
 type aopItem struct {
@@ -31,7 +31,6 @@ type AopContext struct {
 	// MethodInformation *RequestMapping
 
 	ControllerInformation *ControllerInformation
-
 }
 
 type ControllerInformation struct {
@@ -62,7 +61,7 @@ var aopItems []*aopItem = make([]*aopItem, 0)
 
 func RegisterAop(exp string, order int, fn func(*AopContext)) {
 	// 替换.为\.
-	exp = strings.Replace(exp, ".", "\\.", -1)
+	exp = strings.Replace(exp, "**", "[^/]{0,}", -1)
 	exp = strings.Replace(exp, "*", "(.+)", -1)
 	exp = "^" + exp + "$"
 	reg, err := regexp.Compile(exp)

@@ -10,7 +10,7 @@ var once sync.Once
 func initTransactionManager() {
 	once.Do(func() {
 		// 注册事务处理器
-		RegisterAop("*.*", 0, func(aopContext *AopContext) {
+		RegisterAop("/**", 0, func(aopContext *AopContext) {
 			var tx *sql.Tx
 			defer func() {
 				if err := recover(); err != nil {

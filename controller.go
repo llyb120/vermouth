@@ -2,7 +2,6 @@ package vermouth
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"reflect"
 	"strconv"
@@ -114,7 +113,7 @@ func registerController(r *gin.Engine, controller any) {
 }
 
 func generateApi(controllerDefinition *controllerDefinition, methodName string, api *requestMapping, method reflect.Value, controllerInformation *ControllerInformation) gin.HandlerFunc {
-	methodFullName := fmt.Sprintf("%s.%s", controllerDefinition.Name, methodName)
+	// methodFullName := fmt.Sprintf("%s.%s", controllerDefinition.Name, methodName)
 	// fmt.Println("current method name is ", methodFullName)
 	return func(c *gin.Context) {
 		// 根据params继续拼接参数
@@ -132,7 +131,7 @@ func generateApi(controllerDefinition *controllerDefinition, methodName string, 
 			// 公共参数注入
 			commonParams := make(map[string]interface{})
 			for _, paramHandler := range paramHandlers {
-				if paramHandler.expression.MatchString(methodFullName) {
+				if paramHandler.expression.MatchString(controllerInformation.Path) {
 					singleParams := paramHandler.paramsFunc()
 					for k, v := range singleParams {
 						commonParams[k] = v
@@ -175,7 +174,7 @@ func generateApi(controllerDefinition *controllerDefinition, methodName string, 
 
 		// 检查是否有切面
 		for _, aopItem := range aopItems {
-			if !aopItem.Expression.MatchString(methodFullName) {
+			if !aopItem.Expression.MatchString(controllerInformation.Path) {
 				continue
 			}
 			oldFn := fn
@@ -285,4 +284,3 @@ func getStructName(i interface{}) string {
 	}
 	return ""
 }
-

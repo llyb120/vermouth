@@ -73,7 +73,7 @@ func TestMethod2(req *Request) any {
 - 当多个控制器需要使用相同的参数时，可以通过公共参数注入来实现。
 ```go
 // 公共参数注入
-RegisterParamsFunc("*.*", func() map[string]interface{} {
+RegisterParamsFunc("/**", func() map[string]interface{} {
 	return map[string]interface{}{
 		"token": "123",
 	}
@@ -100,7 +100,7 @@ type TestController struct {
 // 注册切面
 // 第二个参数为切面优先级，越大的切面会越后面调用
 // 例如同时有0和1两个切面，则调用顺序为 0 -> 1
-vermonth.RegisterAop("*.test*", 0, func(aopContext *vermouth.AopContext) {
+vermonth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
 	fmt.Println("aop called")
 
 	// 在控制器启动前，你可以随意修改参数
@@ -141,7 +141,7 @@ func (e *MyError) Error() string {
 }
 
 // 注册全局错误处理器
-vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.AopContext) {
+vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
 	defer func() {
 		if err := recover(); err != nil {
 			// 判断是否是自定义错误
@@ -171,7 +171,7 @@ func DoTestError() any {
 - 利用切面，你可以轻松管理事务。
 ```go
 type TestController struct {
-	_           any                                                   `path:"/api" name:"test"`
+	_           any                                                   `path:"/api"`
 
 	// 事务
 	TestTransaction func(tx *sql.Tx) any `method:"GET" path:"/test4" params:"tx" transaction:"true"`
@@ -193,7 +193,7 @@ func DoTestTransaction(tx *sql.Tx) any {
 - 你可以通过自定义增强来实现更多的功能，例如日志、缓存、权限控制等。
 
 ```go
-vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.AopContext) {
+vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
 	// 获取控制器中的自定义属性
 	logConfig,ok := aopContext.ControllerInformation.Attributes["log"]
 	if ok {

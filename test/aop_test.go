@@ -28,7 +28,7 @@ func TestAop(t *testing.T) {
 		//return aopContext.Fn()
 	})
 
-	vermouth.RegisterAop("*.*", 100, func(aopContext *vermouth.AopContext) {
+	vermouth.RegisterAop("/api/**", 100, func(aopContext *vermouth.AopContext) {
 		fmt.Println("aop called2")
 		aopContext.Call()
 	})
