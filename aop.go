@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"github.com/gin-gonic/gin"
 )
 
 type aopItem struct {
@@ -21,6 +22,14 @@ type AopContext struct {
 	ArgumentNames []string
 	// 返回值
 	Result []interface{}
+	// 上下文环境
+	GinContext *gin.Context
+
+	// 控制器信息
+	ControllerInformation *ControllerDefinition
+	// 方法信息
+	MethodInformation *RequestMapping
+
 }
 
 func (aopContext *AopContext) Call() {

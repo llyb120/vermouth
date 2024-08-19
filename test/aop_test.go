@@ -28,7 +28,7 @@ func TestAop(t *testing.T) {
 		//return aopContext.Fn()
 	})
 
-	vermouth.RegisterAop("test.*", 100, func(aopContext *vermouth.AopContext) {
+	vermouth.RegisterAop("*.*", 100, func(aopContext *vermouth.AopContext) {
 		fmt.Println("aop called2")
 		aopContext.Call()
 	})
@@ -56,4 +56,43 @@ func TestAop(t *testing.T) {
 	//assert.Equal(t, http.StatusOK, w2.Code)
 	//expected2 := `{"message":"Hello, Gin!3"}`
 	//assert.JSONEq(t, expected2, w2.Body.String())
+}
+
+func TestAopError(t *testing.T) {
+	r := gin.Default()
+	vermouth.RegisterControllers(r, NewTestController())
+
+	r.Use(func(ctx *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Println("middleware called")
+			}
+		}()
+		ctx.Next()
+	})
+
+	// 注册全局错误处理器
+	vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.AopContext) {
+		defer func() {
+			if err := recover(); err != nil {
+				// 判断是否是自定义错误
+				if myErr, ok := err.(*MyError); ok {
+					aopContext.GinContext.JSON(myErr.Code, myErr.Message)
+					return
+				}
+				// 不是我的异常，抛回给中间件处理
+				panic(err)
+			}
+		}()
+		aopContext.Call()
+	})
+
+	req, _ := http.NewRequest("GET", "/api/test3", nil)
+
+	// 创建一个响应记录器
+	w := httptest.NewRecorder()
+
+	// 处理请求
+	r.ServeHTTP(w, req)
+
 }

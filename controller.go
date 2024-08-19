@@ -1,6 +1,7 @@
 package vermouth
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"reflect"
@@ -8,14 +9,16 @@ import (
 	"strings"
 )
 
-type requestMapping struct {
-	Method string
-	Path   string
-	Params []string
+type RequestMapping struct {
+	Method      string
+	Path        string
+	Params      []string
+	Transaction bool
 }
-type controllerDefinition struct {
-	Path string
-	Name string
+type ControllerDefinition struct {
+	Path        string
+	Name        string
+	Transaction bool
 }
 
 func RegisterControllers(r *gin.Engine, controller ...any) {
@@ -25,14 +28,14 @@ func RegisterControllers(r *gin.Engine, controller ...any) {
 }
 
 func registerController(r *gin.Engine, controller any) {
-	controllerDefinition := &controllerDefinition{}
+	controllerDefinition := &ControllerDefinition{}
 	controllerType := reflect.TypeOf(controller)
 	controllerValue := reflect.ValueOf(controller)
 	// controllerMethods := controllerType.NumMethod()
 	// 解析控制器字段
 	controllerElemType := controllerType.Elem()
 	controllerFields := controllerElemType.NumField()
-	apiMap := make(map[string]*requestMapping)
+	apiMap := make(map[string]*RequestMapping)
 	globalField, ok := controllerElemType.FieldByName("_")
 	if ok {
 		globalFieldTag := globalField.Tag.Get("path")
@@ -67,10 +70,15 @@ func registerController(r *gin.Engine, controller any) {
 		if path == "" {
 			continue
 		}
-		api := &requestMapping{Method: tag, Path: path}
+		api := &RequestMapping{Method: tag, Path: path}
 		params := field.Tag.Get("params")
 		if params != "" {
 			api.Params = strings.Split(params, ",")
+		}
+		// 事务
+		transaction := field.Tag.Get("transaction")
+		if transaction == "true" {
+			api.Transaction = true
 		}
 		apiMap[field.Name] = api
 
@@ -88,7 +96,7 @@ func registerController(r *gin.Engine, controller any) {
 	}
 }
 
-func generateApi(controllerDefinition *controllerDefinition, methodName string, api *requestMapping, method reflect.Value) gin.HandlerFunc {
+func generateApi(controllerDefinition *ControllerDefinition, methodName string, api *RequestMapping, method reflect.Value) gin.HandlerFunc {
 	methodFullName := fmt.Sprintf("%s.%s", controllerDefinition.Name, methodName)
 	// fmt.Println("current method name is ", methodFullName)
 	return func(c *gin.Context) {
@@ -98,14 +106,20 @@ func generateApi(controllerDefinition *controllerDefinition, methodName string, 
 		numIn := methodType.NumIn()
 		// args := make([]reflect.Value, numIn)
 		aopContext := newAopContext(numIn)
-		for i := 0; i < numIn; i++ {
-			// 字段提取顺序，优先从body中取，如果没有body，则从query中取
-			methodParams := methodType.In(i)
-			paramName := api.Params[i]
-			aopContext.Arguments[i] = extractParamFromContext(c, methodParams, paramName).Interface()
-			aopContext.ArgumentNames[i] = paramName
-		}
+		aopContext.ControllerInformation = controllerDefinition
+		aopContext.MethodInformation = api
+		aopContext.GinContext = c
 		aopContext.Fn = func() {
+
+			// 拼装参数
+			for i := 0; i < numIn; i++ {
+				// 字段提取顺序，优先从body中取，如果没有body，则从query中取
+				methodParams := methodType.In(i)
+				paramName := api.Params[i]
+				aopContext.Arguments[i] = extractParamFromContext(c, methodParams, paramName).Interface()
+				aopContext.ArgumentNames[i] = paramName
+			}
+
 			// 转换成reflect.Value
 			reflectArguments := make([]reflect.Value, len(aopContext.Arguments))
 			for i, arg := range aopContext.Arguments {
@@ -162,6 +176,13 @@ func getStringFromContext(c *gin.Context, key string) string {
 func extractParamFromContext(c *gin.Context, methodParams reflect.Type, paramName string) reflect.Value {
 	switch methodParams.Kind() {
 	case reflect.Ptr:
+		// 有一些特殊值需要处理
+		if methodParams.AssignableTo(reflect.TypeOf((*sql.Tx)(nil))) {
+			tx, ok := c.Get("Vermouth:tx")
+			if ok {
+				return reflect.ValueOf(tx)
+			}
+		}
 		elemValue := extractParamFromContext(c, methodParams.Elem(), paramName)
 		ptrValue := reflect.New(methodParams.Elem())
 		ptrValue.Elem().Set(elemValue)
@@ -206,6 +227,7 @@ func extractParamFromContext(c *gin.Context, methodParams reflect.Type, paramNam
 			return reflect.ValueOf(intValue)
 		}
 		return reflect.ValueOf(int64(0))
+
 	default:
 		return reflect.ValueOf(nil)
 	}

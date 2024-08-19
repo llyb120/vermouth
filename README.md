@@ -99,3 +99,74 @@ vermonth.RegisterAop("*.test*", 0, func(aopContext *vermouth.AopContext) {
 	}
 })
 ```
+
+### 全局错误处理
+- 利用切面，可以轻松完成全局错误的捕获和处理，并返回统一的错误结构。
+
+```go
+// 自定义异常处理类
+// 定义一个结构体来表示自定义错误
+type MyError struct {
+	Message string
+	Code    int
+}
+
+func NewMyError(code int, message string) *MyError {
+	return &MyError{
+		Message: message,
+		Code:    code,
+	}
+}
+
+// 实现error接口的Error方法
+func (e *MyError) Error() string {
+	return fmt.Sprintf("Error %d: %s", e.Code, e.Message)
+}
+
+// 注册全局错误处理器
+vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.AopContext) {
+	defer func() {
+		if err := recover(); err != nil {
+			// 判断是否是自定义错误
+			if myErr, ok := err.(*MyError); ok {
+				aopContext.GinContext.JSON(myErr.Code, myErr.Message)
+				return
+			}
+			// 不是我的异常，抛回给中间件处理
+			panic(err)
+		}
+	}()
+	aopContext.Call()
+})
+
+// 控制器中抛出异常
+func DoTestError() any {
+	err := NewMyError(400, "test error")
+	if true {
+		panic(err)
+	}
+	// 正常的业务逻辑
+	return "ok"
+}
+```
+
+### 事务
+- 利用切面，你可以轻松管理事务。
+```go
+type TestController struct {
+	_           any                                                   `path:"/api" name:"test"`
+
+	// 事务
+	TestTransaction func(tx *sql.Tx) any `method:"GET" path:"/test4" params:"tx" transaction:"true"`
+}
+
+func DoTestTransaction(tx *sql.Tx) any {
+	tx.Exec("INSERT INTO user (name, age) VALUES (?, ?)", "John", 20)
+	// do something...
+	if true {
+		// 当需要回滚事务的时候，只要抛出异常即可
+		panic("xxx")
+	}
+	return nil
+}
+```
