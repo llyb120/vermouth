@@ -40,7 +40,7 @@ func DoTestTransaction(tx *sql.Tx) any {
 }
 
 func DoTestError() any {
-	err := NewMyError(400, "test error")
+	err := vermouth.NewRuntimeError(400, "test error")
 	panic(err)
 }
 
@@ -66,13 +66,6 @@ func DoTestMethod2(req *Request) any {
 type MyError struct {
 	Message string
 	Code    int
-}
-
-func NewMyError(code int, message string) *MyError {
-	return &MyError{
-		Message: message,
-		Code:    code,
-	}
 }
 
 // 实现error接口的Error方法

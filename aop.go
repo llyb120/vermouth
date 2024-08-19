@@ -25,11 +25,18 @@ type AopContext struct {
 	// 上下文环境
 	GinContext *gin.Context
 
-	// 控制器信息
-	ControllerInformation *ControllerDefinition
-	// 方法信息
-	MethodInformation *RequestMapping
+	// // 控制器信息
+	// ControllerInformation *ControllerDefinition
+	// // 方法信息
+	// MethodInformation *RequestMapping
 
+	ControllerInformation *ControllerInformation
+
+}
+
+type ControllerInformation struct {
+	Path        string
+	Transaction bool
 }
 
 func (aopContext *AopContext) Call() {

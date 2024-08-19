@@ -9,33 +9,37 @@ import (
 	"strings"
 )
 
-type RequestMapping struct {
+type requestMapping struct {
 	Method      string
 	Path        string
 	Params      []string
 	Transaction bool
 }
-type ControllerDefinition struct {
+type controllerDefinition struct {
 	Path        string
 	Name        string
 	Transaction bool
 }
 
 func RegisterControllers(r *gin.Engine, controller ...any) {
+	// 初始化事务管理器
+	// 只执行一次
+	initTransactionManager()
+	// 注册控制器
 	for _, controller := range controller {
 		registerController(r, controller)
 	}
 }
 
 func registerController(r *gin.Engine, controller any) {
-	controllerDefinition := &ControllerDefinition{}
+	controllerDefinition := &controllerDefinition{}
 	controllerType := reflect.TypeOf(controller)
 	controllerValue := reflect.ValueOf(controller)
 	// controllerMethods := controllerType.NumMethod()
 	// 解析控制器字段
 	controllerElemType := controllerType.Elem()
 	controllerFields := controllerElemType.NumField()
-	apiMap := make(map[string]*RequestMapping)
+	apiMap := make(map[string]*requestMapping)
 	globalField, ok := controllerElemType.FieldByName("_")
 	if ok {
 		globalFieldTag := globalField.Tag.Get("path")
@@ -70,16 +74,13 @@ func registerController(r *gin.Engine, controller any) {
 		if path == "" {
 			continue
 		}
-		api := &RequestMapping{Method: tag, Path: path}
+		api := &requestMapping{Method: tag, Path: path}
 		params := field.Tag.Get("params")
 		if params != "" {
 			api.Params = strings.Split(params, ",")
 		}
 		// 事务
 		transaction := field.Tag.Get("transaction")
-		if transaction == "true" {
-			api.Transaction = true
-		}
 		apiMap[field.Name] = api
 
 		// 计算完整的路径
@@ -92,11 +93,16 @@ func registerController(r *gin.Engine, controller any) {
 		fullPath = strings.Replace(fullPath, "//", "/", -1)
 		api.Path = fullPath
 
-		r.Handle(api.Method, fullPath, generateApi(controllerDefinition, field.Name, api, controllerValue.Elem().FieldByName(field.Name)))
+		controllerInformation := &ControllerInformation{
+			Path:        fullPath,
+			Transaction: transaction == "true",
+		}
+
+		r.Handle(api.Method, fullPath, generateApi(controllerDefinition, field.Name, api, controllerValue.Elem().FieldByName(field.Name), controllerInformation))
 	}
 }
 
-func generateApi(controllerDefinition *ControllerDefinition, methodName string, api *RequestMapping, method reflect.Value) gin.HandlerFunc {
+func generateApi(controllerDefinition *controllerDefinition, methodName string, api *requestMapping, method reflect.Value, controllerInformation *ControllerInformation) gin.HandlerFunc {
 	methodFullName := fmt.Sprintf("%s.%s", controllerDefinition.Name, methodName)
 	// fmt.Println("current method name is ", methodFullName)
 	return func(c *gin.Context) {
@@ -106,9 +112,10 @@ func generateApi(controllerDefinition *ControllerDefinition, methodName string, 
 		numIn := methodType.NumIn()
 		// args := make([]reflect.Value, numIn)
 		aopContext := newAopContext(numIn)
-		aopContext.ControllerInformation = controllerDefinition
-		aopContext.MethodInformation = api
+		// aopContext.ControllerInformation = controllerDefinition
+		// aopContext.MethodInformation = api
 		aopContext.GinContext = c
+		aopContext.ControllerInformation = controllerInformation
 		aopContext.Fn = func() {
 
 			// 拼装参数
