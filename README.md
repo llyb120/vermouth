@@ -71,6 +71,7 @@ func TestMethod2(req *Request) any {
 
 ### 公共参数注入
 - 当多个控制器需要使用相同的参数时，可以通过公共参数注入来实现。
+- 例如获得当前登录的用户
 ```go
 // 公共参数注入
 RegisterParamsFunc("/**", func() map[string]interface{} {
