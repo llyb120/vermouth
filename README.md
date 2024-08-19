@@ -11,10 +11,10 @@ Vermonth 是一个基于 Gin 的增强工具，提供了一系列增强工具来
 ```go
 type TestController struct {
 	// 定义该控制器的总路径
-    _ any `path:"/api"`
+    _ interface{} `path:"/api"`
 
 	// 方法
-	TestMethod func(a int, b int) any `method:"GET" path:"/test" params:"a,b"`
+	TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
 }
 
 // 例如
@@ -22,7 +22,7 @@ type TestController struct {
 
 
 // 定义控制器
-func TestMethod(a int, b int) any {
+func TestMethod(a int, b int) interface{} {
 	return "Hello, Gin! " + strconv.Itoa(a) + strconv.Itoa(b)
 }
 
@@ -47,8 +47,8 @@ vermonth.RegisterController(r, NewTestController())
 
 ```go
 type TestController struct {
-	TestMethod func(a int, b int) any `method:"GET" path:"/test" params:"a,b"`
-	TestMethod2 func(req *Request) any `method:"GET" path:"/test" params:"req"`
+	TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
+	TestMethod2 func(req *Request) interface{} `method:"GET" path:"/test" params:"req"`
 }
 
 type Request struct {
@@ -56,13 +56,13 @@ type Request struct {
 	B int `json:"b"`
 }
 
-func TestMethod(a int, b int) any {
+func TestMethod(a int, b int) interface{} {
 	return gin.H{
 		"message": "Hello, Gin!" + strconv.Itoa(a+b),
 	}
 }
 
-func TestMethod2(req *Request) any {
+func TestMethod2(req *Request) interface{} {
 	return gin.H{
 		"message": "Hello, Gin!" + strconv.Itoa(req.A+req.B),
 	}
@@ -81,7 +81,7 @@ RegisterParamsFunc("/**", func() map[string]interface{} {
 })
 
 
-func DoTestParams(token string) any {
+func DoTestParams(token string) interface{} {
 	return gin.H{
 		"token": token,
 	}
@@ -101,8 +101,8 @@ vermouth支持AOP，可以通过正则表达式来匹配方法，并执行相应
 ```go
 // 控制器定义的时候，可以用 _ 为控制器附加名字，如果不附加，则控制器自动使用控制器类型名作为名字
 type TestController struct {
-    _ any `path:"/api" `
-	TestMethod func(a int, b int) any `method:"GET" path:"/test" params:"a,b"`
+    _ interface{} `path:"/api" `
+	TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
 }
 
 // 注册切面
@@ -165,7 +165,7 @@ vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
 })
 
 // 控制器中抛出异常
-func DoTestError() any {
+func DoTestError() interface{} {
 	err := NewMyError(400, "test error")
 	if true {
 		panic(err)
@@ -180,13 +180,13 @@ func DoTestError() any {
 - 只需要在控制器定义上添加```transaction:"true"``即可。
 ```go
 type TestController struct {
-    _ any `path:"/api" `
+    _ interface{} `path:"/api" `
 
 	// 事务
-	TestTransaction func(tx *sql.Tx) any `method:"GET" path:"/test4" params:"tx" transaction:"true"`
+	TestTransaction func(tx *sql.Tx) interface{} `method:"GET" path:"/test4" params:"tx" transaction:"true"`
 }
 
-func DoTestTransaction(tx *sql.Tx) any {
+func DoTestTransaction(tx *sql.Tx) interface{} {
 	tx.Exec("INSERT INTO user (name, age) VALUES (?, ?)", "John", 20)
 	// do something...
 	if true {

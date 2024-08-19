@@ -10,7 +10,6 @@ import (
 	"testing"
 )
 
-
 func TestDoTestMethod(t *testing.T) {
 	// 创建一个新的Gin引擎
 	r := gin.Default()
@@ -43,8 +42,8 @@ func TestDoTestMethod(t *testing.T) {
 }
 
 func TestGin(t *testing.T) {
-	r := gin.Default()
-	vermouth.RegisterControllers(r, NewTestController())
-
-	r.Run(":8080")
+	//r := gin.Default()
+	//vermouth.RegisterControllers(r, NewTestController())
+	//
+	//r.Run(":8080")
 }

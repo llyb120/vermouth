@@ -20,7 +20,7 @@ type controllerDefinition struct {
 	Transaction bool
 }
 
-func RegisterControllers(r *gin.Engine, controller ...any) {
+func RegisterControllers(r *gin.Engine, controller ...interface{}) {
 	// 初始化事务管理器
 	// 只执行一次
 	initTransactionManager()
@@ -30,7 +30,7 @@ func RegisterControllers(r *gin.Engine, controller ...any) {
 	}
 }
 
-func registerController(r *gin.Engine, controller any) {
+func registerController(r *gin.Engine, controller interface{}) {
 	controllerDefinition := &controllerDefinition{}
 	controllerType := reflect.TypeOf(controller)
 	controllerValue := reflect.ValueOf(controller)
