@@ -21,7 +21,7 @@ type TestController struct {
 	TestError func() any `method:"GET" path:"/test3"`
 
 	// 事务
-	TestTransaction func(tx *sql.Tx) any `method:"GET" path:"/test4" transaction:"true"`
+	TestTransaction func(tx *sql.Tx, c *gin.Context) any `method:"GET" path:"/test4" transaction:"true"`
 }
 
 func NewTestController() *TestController {
@@ -33,7 +33,7 @@ func NewTestController() *TestController {
 	}
 }
 
-func DoTestTransaction(tx *sql.Tx) any {
+func DoTestTransaction(tx *sql.Tx, c *gin.Context) any {
 	tx.Exec("INSERT INTO user (name, age) VALUES (?, ?)", "John", 20)
 	panic("must be rollback")
 	return nil

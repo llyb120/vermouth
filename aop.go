@@ -37,6 +37,14 @@ type AopContext struct {
 type ControllerInformation struct {
 	Path        string
 	Transaction bool
+
+	Attributes map[string]string
+}
+
+func NewControllerInformation() *ControllerInformation {
+	return &ControllerInformation{
+		// Attributes: make(map[string]string),
+	}
 }
 
 func (aopContext *AopContext) Call() {

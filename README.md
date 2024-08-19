@@ -170,3 +170,19 @@ func DoTestTransaction(tx *sql.Tx) any {
 	return nil
 }
 ```
+
+
+### 自定义增强
+- 你可以通过自定义增强来实现更多的功能，例如日志、缓存、权限控制等。
+
+```go
+vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.AopContext) {
+	// 获取控制器中的自定义属性
+	logConfig,ok := aopContext.ControllerInformation.Attributes["log"]
+	if ok {
+		// do something...
+		fmt.Println("logConfig:", logConfig)
+	}
+	aopContext.Call()
+})
+```

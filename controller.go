@@ -95,11 +95,20 @@ func registerController(r *gin.Engine, controller any) {
 		fullPath = strings.Replace(fullPath, "//", "/", -1)
 		api.Path = fullPath
 
-		controllerInformation := &ControllerInformation{
-			Path:        fullPath,
-			Transaction: transaction == "true",
+		controllerInformation := NewControllerInformation()
+		controllerInformation.Path = fullPath
+		controllerInformation.Transaction = transaction == "true"
+		// tag整理成map
+		tagMap := make(map[string]string)
+		for _, tag := range strings.Split(string(field.Tag), " ") {
+			parts := strings.SplitN(tag, ":", 2)
+			if len(parts) == 2 {
+				key := strings.Trim(parts[0], `"`)
+				value := strings.Trim(parts[1], `"`)
+				tagMap[key] = value
+			}
 		}
-
+		controllerInformation.Attributes = tagMap
 		r.Handle(api.Method, fullPath, generateApi(controllerDefinition, field.Name, api, controllerValue.Elem().FieldByName(field.Name), controllerInformation))
 	}
 }
