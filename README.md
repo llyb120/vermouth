@@ -88,12 +88,12 @@ RegisterParamsFunc("/**", func() map[string]interface{} {
 
 ### 切面
 
-vermonth支持AOP，可以通过正则表达式来匹配方法，并执行相应的AOP函数。
+vermouth支持AOP，可以通过正则表达式来匹配方法，并执行相应的AOP函数。
 
 ```go
 // 控制器定义的时候，可以用 _ 为控制器附加名字，如果不附加，则控制器自动使用控制器类型名作为名字
 type TestController struct {
-    _ any `path:"/api" name:"test"`
+    _ any `path:"/api" `
 	TestMethod func(a int, b int) any `method:"GET" path:"/test" params:"a,b"`
 }
 
@@ -169,9 +169,10 @@ func DoTestError() any {
 
 ### 事务
 - 利用切面，你可以轻松管理事务。
+- 只需要在控制器定义上添加```transaction:"true"``即可。
 ```go
 type TestController struct {
-	_           any                                                   `path:"/api"`
+    _ any `path:"/api" `
 
 	// 事务
 	TestTransaction func(tx *sql.Tx) any `method:"GET" path:"/test4" params:"tx" transaction:"true"`
