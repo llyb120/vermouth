@@ -80,6 +80,13 @@ RegisterParamsFunc("/**", func() map[string]interface{} {
 	}
 })
 
+
+func DoTestParams(token string) any {
+	return gin.H{
+		"token": token,
+	}
+}	
+
 ```
 
 
