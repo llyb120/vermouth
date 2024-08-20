@@ -31,6 +31,9 @@ type AopContext struct {
 	// MethodInformation *RequestMapping
 
 	ControllerInformation *ControllerInformation
+
+	// 是否自动返回前端
+	AutoReturn bool
 }
 
 type ControllerInformation struct {
@@ -54,6 +57,7 @@ func newAopContext(argumentsLength int) *AopContext {
 	return &AopContext{
 		Arguments:     make([]interface{}, argumentsLength),
 		ArgumentNames: make([]string, argumentsLength),
+		AutoReturn:    true,
 	}
 }
 

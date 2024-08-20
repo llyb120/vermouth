@@ -15,20 +15,20 @@ func TestAop(t *testing.T) {
 	r := gin.Default()
 
 	vermouth.RegisterControllers(r, NewTestController())
-	vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.AopContext) {
+	vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
 		fmt.Println("aop called")
 		// 修改参数
-		aopContext.Arguments[0] = 2
+		// aopContext.Arguments[0] = 2
 		aopContext.Call()
 		// 通用返回
-		aopContext.Result[0] = map[string]interface{}{
-			"data": "ok",
-		}
+		// aopContext.Result[0] = map[string]interface{}{
+		// 	"data": "ok",
+		// }
 		// aopContext.Arguments[0] = reflect.ValueOf(1)
 		//return aopContext.Fn()
 	})
 
-	vermouth.RegisterAop("/api/**", 100, func(aopContext *vermouth.AopContext) {
+	vermouth.RegisterAop("/api/**", 0, func(aopContext *vermouth.AopContext) {
 		fmt.Println("aop called2")
 		aopContext.Call()
 	})

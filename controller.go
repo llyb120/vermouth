@@ -178,9 +178,10 @@ func generateApi(controllerDefinition *controllerDefinition, methodName string, 
 				continue
 			}
 			oldFn := fn
+			aopItemCopy := aopItem // 创建aopItem的副本
 			fn = func() {
 				aopContext.Fn = oldFn
-				aopItem.Fn(aopContext)
+				aopItemCopy.Fn(aopContext) // 使用副本
 			}
 			//aopContext.Fn = func(){
 			//	aopItem.Fn(aopContext)
@@ -190,12 +191,14 @@ func generateApi(controllerDefinition *controllerDefinition, methodName string, 
 		//aopContext.Fn()
 		fn()
 
-		res := aopContext.Result
+		if aopContext.AutoReturn {
+			res := aopContext.Result
 
-		if len(res) > 0 {
-			c.JSON(200, res[0])
-		} else {
-			c.JSON(200, nil)
+			if len(res) > 0 {
+				c.JSON(200, res[0])
+			} else {
+				c.JSON(200, nil)
+			}
 		}
 
 		// // 执行切面
