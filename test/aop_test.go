@@ -15,7 +15,7 @@ func TestAop(t *testing.T) {
 	r := gin.Default()
 
 	vermouth.RegisterControllers(r, NewTestController())
-	vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
+	vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 		fmt.Println("aop called")
 		// 修改参数
 		// aopContext.Arguments[0] = 2
@@ -28,7 +28,7 @@ func TestAop(t *testing.T) {
 		//return aopContext.Fn()
 	})
 
-	vermouth.RegisterAop("/api/**", 0, func(aopContext *vermouth.AopContext) {
+	vermouth.RegisterAop("/api/**", 0, func(aopContext *vermouth.Context) {
 		fmt.Println("aop called2")
 		aopContext.Call()
 	})
@@ -72,7 +72,7 @@ func TestAopError(t *testing.T) {
 	})
 
 	// 注册全局错误处理器
-	vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.AopContext) {
+	vermouth.RegisterAop("*.*", 0, func(aopContext *vermouth.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				// 判断是否是自定义错误

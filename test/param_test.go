@@ -13,7 +13,7 @@ func TestParam(t *testing.T) {
 	r := gin.Default()
 
 	vermouth.RegisterControllers(r, NewTestController())
-	vermouth.RegisterParamsFunc("/**", func() map[string]interface{} {
+	vermouth.RegisterParamsFunc("/**", func(aopContext *vermouth.Context) map[string]interface{} {
 		return map[string]interface{}{
 			"token": "123",
 		}

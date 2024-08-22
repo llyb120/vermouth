@@ -2,6 +2,7 @@ package test
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -21,15 +22,20 @@ type TestController struct {
 
 	// 公共参数注入
 	TestParams func(token string) interface{} `method:"GET" path:"/test5" params:"token"`
+
+	TestParamValidate  func(p *TestParamValidate) interface{} `method:"POST" path:"/test6" params:"p=json"`
+	TestParamValidate2 func(p *TestParamValidate) interface{} `method:"POST" path:"/test7" params:"p=form"`
 }
 
 func NewTestController() *TestController {
 	return &TestController{
-		TestMethod:      DoTestMethod,
-		TestMethod2:     DoTestMethod2,
-		TestError:       DoTestError,
-		TestTransaction: DoTestTransaction,
-		TestParams:      DoTestParams,
+		TestMethod:         DoTestMethod,
+		TestMethod2:        DoTestMethod2,
+		TestError:          DoTestError,
+		TestTransaction:    DoTestTransaction,
+		TestParams:         DoTestParams,
+		TestParamValidate:  DoTestParamValidate,
+		TestParamValidate2: DoTestParamValidate,
 	}
 }
 
@@ -54,6 +60,29 @@ func DoTestParams(token string) interface{} {
 	return gin.H{
 		"token": token,
 	}
+}
+
+type TestParamValidate struct {
+	A string                  `json:"a" binding:"required" message:"required=a字段必填"`
+	B string                  `json:"b" binding:"required" message:"b字段必填"`
+	C *TestParamValidateChild `json:"c"`
+}
+
+func (p *TestParamValidate) Test() error {
+	fmt.Println("test called")
+	return errors.New("test error")
+}
+func (p *TestParamValidate) Test2(ctx *vermouth.Context) error {
+	fmt.Println("test2 called")
+	return nil
+}
+
+type TestParamValidateChild struct {
+	A int `json:"a" validate:"required"`
+}
+
+func DoTestParamValidate(p *TestParamValidate) interface{} {
+	return nil
 }
 
 type Request struct {

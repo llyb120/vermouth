@@ -9,12 +9,12 @@ import (
 
 type aopItem struct {
 	Expression *regexp.Regexp
-	Fn         func(*AopContext)
+	Fn         func(*Context)
 	Order      int
 	// controllerCaller interface{}
 }
 
-type AopContext struct {
+type Context struct {
 	// 调用方法
 	Fn func()
 	// 参数表
@@ -49,12 +49,12 @@ func NewControllerInformation() *ControllerInformation {
 	}
 }
 
-func (aopContext *AopContext) Call() {
+func (aopContext *Context) Call() {
 	aopContext.Fn()
 }
 
-func newAopContext(argumentsLength int) *AopContext {
-	return &AopContext{
+func newAopContext(argumentsLength int) *Context {
+	return &Context{
 		Arguments:     make([]interface{}, argumentsLength),
 		ArgumentNames: make([]string, argumentsLength),
 		AutoReturn:    true,
@@ -63,7 +63,7 @@ func newAopContext(argumentsLength int) *AopContext {
 
 var aopItems []*aopItem = make([]*aopItem, 0)
 
-func RegisterAop(exp string, order int, fn func(*AopContext)) {
+func RegisterAop(exp string, order int, fn func(*Context)) {
 	// 替换.为\.
 	exp = strings.Replace(exp, "**", "(.+)", -1)
 	exp = strings.Replace(exp, "*", "[^/]{0,}", -1)
@@ -79,7 +79,7 @@ func RegisterAop(exp string, order int, fn func(*AopContext)) {
 }
 
 // func main(){
-// 	RegisterAop("*.*", func (aopContext *AopContext)  {
+// 	RegisterAop("*.*", func (aopContext *Context)  {
 // 		aopContext.Arguments[0] = reflect.ValueOf(1)
 // 		aopContext.Fn()
 // 	})

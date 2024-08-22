@@ -82,12 +82,57 @@ RegisterParamsFunc("/**", func() map[string]interface{} {
 
 
 func DoTestParams(token string) interface{} {
-	return gin.H{
+	return gin.H{   
 		"token": token,
 	}
 }	
 
 ```
+
+### 参数校验
+- 遵循gin的规范，通过`binding:"xxx"`来校验参数
+- 对校验进行增强，在定义了`binding:"xxx"`的参数时，可以再使用message=来定义校验失败时的返回信息。
+
+```go
+type TestParams struct {
+	Name string `json:"name" binding:"required" message:"required=姓名不能为空"` // 如果只有一个校验的话，required=可以不写
+	Age int `json:"age" binding:",gt=18" message:"年龄必须大于18"` // 如果只有一个校验的话，required=可以不写
+}
+
+type TestController struct {
+	TestParams func(params *TestParams) interface{} `method:"GET" path:"/test" params:"params=query" ` //params=query 表示参数从query中获取（包括了表单方式），params=body 表示参数从json中获取，可以不写，默认情况下，POST请求会从body中获取参数，GET请求会从query中获取参数
+}
+```
+
+### 自定义校验
+- 可以依然沿用gin的校验方式，注册自定义校验器。
+- 除此之外，vermonth还提供了自定义校验器，用于一些复杂的校验。
+
+```go
+type TestParams struct {
+	Name string `json:"name" binding:"required" message:"required=姓名不能为空"` // 如果只有一个校验的话，required=可以不写
+	Age int `json:"age" binding:",gt=18" message:"年龄必须大于18"` // 如果只有一个校验的话，required=可以不写
+}
+
+// 该结构体内所有以Test开头的方法，都会被认为是自定义校验方法，vermouth会自动调用
+func(t *TestParams) TestA() error {
+	// 例如某些数据在插入时，需要检查数据库中是否有同名数据
+	count := db.QueryRow("SELECT * FROM user WHERE name = ?", t.Name)
+	if count > 0 {
+		return errors.New("姓名不能重复")
+	}
+	return nil
+}
+
+// 自定义校验方法，可以传入ctx参数，ctx参数中包含了当前请求的所有信息
+func(t *TestParams) TestB(ctx *vermouth.Context) error {
+	if t.Age < 18 {
+		return errors.New("年龄必须大于18")
+	}
+	return nil
+}
+```
+
 
 
 ### 自定义参数解析
@@ -108,7 +153,7 @@ type TestController struct {
 // 注册切面
 // 第二个参数为切面优先级，越大的切面会越后面调用
 // 例如同时有0和1两个切面，则调用顺序为 0 -> 1
-vermonth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
+vermonth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 	fmt.Println("aop called")
 
 	// 在控制器启动前，你可以随意修改参数
@@ -149,7 +194,7 @@ func (e *MyError) Error() string {
 }
 
 // 注册全局错误处理器
-vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
+vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 	defer func() {
 		if err := recover(); err != nil {
 			// 判断是否是自定义错误
@@ -202,7 +247,7 @@ func DoTestTransaction(tx *sql.Tx) interface{} {
 - 你可以通过自定义增强来实现更多的功能，例如日志、缓存、权限控制等。
 
 ```go
-vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.AopContext) {
+vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 	// 获取控制器中的自定义属性
 	logConfig,ok := aopContext.ControllerInformation.Attributes["log"]
 	if ok {

@@ -7,7 +7,7 @@ import (
 
 type paramHandler struct {
 	expression *regexp.Regexp
-	paramsFunc func() map[string]interface{}
+	paramsFunc func(aopContext *Context) map[string]interface{}
 	// params     map[string]interface{}
 }
 
@@ -16,12 +16,12 @@ var (
 )
 
 // func RegisterParams(exp string, params map[string]interface{}) {
-// 	RegisterParamsFunc(exp, func(aopContext *AopContext) map[string]interface{} {
+// 	RegisterParamsFunc(exp, func(aopContext *Context) map[string]interface{} {
 // 		return params
 // 	})
 // }
 
-func RegisterParamsFunc(exp string, paramsFunc func() map[string]interface{}) {
+func RegisterParamsFunc(exp string, paramsFunc func(aopContext *Context) map[string]interface{}) {
 	// 替换.为\.
 	exp = strings.Replace(exp, "**", "(.+)", -1)
 	exp = strings.Replace(exp, "*", "[^/]{0,}", -1)
