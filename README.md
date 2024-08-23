@@ -69,7 +69,7 @@ func TestMethod2(req *Request) interface{} {
 }
 ```
 
-### 公共参数注入
+#### 公共参数注入
 - 当多个控制器需要使用相同的参数时，可以通过公共参数注入来实现。
 - 例如获得当前登录的用户
 ```go
@@ -89,7 +89,7 @@ func DoTestParams(token string) interface{} {
 
 ```
 
-### 参数校验
+#### 参数校验
 - 遵循gin的规范，通过`binding:"xxx"`来校验参数
 - 对校验进行增强，在定义了`binding:"xxx"`的参数时，可以再使用message=来定义校验失败时的返回信息。
 
@@ -104,7 +104,7 @@ type TestController struct {
 }
 ```
 
-### 自定义校验
+#### 自定义校验
 - 可以依然沿用gin的校验方式，注册自定义校验器。
 - 除此之外，vermonth还提供了自定义校验器，用于一些复杂的校验。
 
@@ -135,7 +135,7 @@ func(t *TestParams) TestB(ctx *vermouth.Context) error {
 
 
 
-### 自定义参数解析
+#### 自定义参数解析
 - 待开发
 
 
@@ -170,7 +170,7 @@ vermonth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 })
 ```
 
-### 全局错误处理
+#### 全局错误处理
 - 利用切面，可以轻松完成全局错误的捕获和处理，并返回统一的错误结构。
 
 ```go
@@ -220,7 +220,7 @@ func DoTestError() interface{} {
 }
 ```
 
-### 事务
+#### 事务
 - 利用切面，你可以轻松管理事务。
 - 只需要在控制器定义上添加```transaction:"true"``即可。
 ```go
@@ -243,7 +243,7 @@ func DoTestTransaction(tx *sql.Tx) interface{} {
 ```
 
 
-### 自定义增强
+#### 自定义增强
 - 你可以通过自定义增强来实现更多的功能，例如日志、缓存、权限控制等。
 
 ```go
@@ -257,4 +257,9 @@ vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 	aopContext.Call()
 })
 ```
+
+### 转换器
+- 利用converter，可以轻松将一个结构体转换为另一个结构体。
+- 使用go generate自动生成转换器代码，避免了调用反射的开销。
+
 
