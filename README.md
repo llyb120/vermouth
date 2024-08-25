@@ -293,4 +293,23 @@ tl.Go(func(){
 - 利用converter，可以轻松将一个结构体转换为另一个结构体。
 - 使用go generate自动生成转换器代码，避免了调用反射的开销。
 
+### 超级反射
+- 利用vermouth的反射，可以轻松获取结构体中的字段信息，并进行操作。
+
+```go
+user := &User{Name: "test", Age: 18}
+info := vermouth.GetTypeInfo(reflect.TypeOf(*user))
+fieldInfo, _ := info.Fields["Name"]
+fieldInfo.Set(user, "newName")
+// fieldPtr := fieldInfo.GetPointer(user)
+// vermouth.SetFieldByPtr(fieldPtr, "newName")
+```
+
+- 性能和GO原始的反射，以及直接赋值的基准测试。
+```
+直接设置: 0.371 ns/op
+vermouth/reflect设置: 1.050 ns/op
+普通反射设置: 129.951 ns/op
+比普通反射快了 111.89 倍
+```
 
