@@ -258,6 +258,37 @@ vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 })
 ```
 
+### 协程上下文
+- 协程上下文，可以让你在协程中获取当前的上下文信息。
+- 例如，你可以通过协程上下文来获取当前的请求信息，或者在协程中传递一些上下文信息。
+- 多适用于在controller和service调用中传递上下文信息。
+
+```go
+tl := vermouth.NewThreadLocal()
+
+func a(){
+	tl.Set("test")
+}
+
+func b(){
+	s := tl.Get()
+	fmt.Println(s) // test
+}
+
+func main(){
+	a()
+	b()
+}
+
+```
+
+- 你可以在子协程中，通过tl.Go(func(){})来创建子协程，子协程会继承父协程的上下文。
+```go
+tl.Go(func(){
+	fmt.Println(tl.Get()) // test
+})
+```	
+
 ### 转换器
 - 利用converter，可以轻松将一个结构体转换为另一个结构体。
 - 使用go generate自动生成转换器代码，避免了调用反射的开销。
