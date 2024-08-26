@@ -134,10 +134,26 @@ func(t *TestParams) TestB(ctx *vermouth.Context) error {
 ```
 
 
-
 #### 自定义参数解析
 - 待开发
 
+
+#### 渐进式覆盖
+- 在重构过往接口的时候，我们希望可以渐进式而不是一次性暴力替换。
+- 重构后的接口应当和之前保持幂等，即调用两个接口应得到相同的结果。
+
+```go
+type TestController struct {
+    _ interface{} `path:"/api" `
+	TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b" cover_url:"/api/test2"`
+	// 当访问/api/test2时，会自动转发一份相同的到/api/test
+}
+
+var r = gin.Default()
+r.Use(vermonth.CoverUrl("../日志地址"))
+// 当访问/api/test2时，会自动转发一份相同的到/api/test
+// 如果二者得到的结果不一致，则会在日志目录下写入日志
+```
 
 ### 切面
 
@@ -292,6 +308,7 @@ tl.Go(func(){
 ### 转换器
 - 利用converter，可以轻松将一个结构体转换为另一个结构体。
 - 使用go generate自动生成转换器代码，避免了调用反射的开销。
+- 开发中
 
 ### 反射
 - 利用vermouth的反射，可以轻松获取结构体中的字段信息，并进行操作。

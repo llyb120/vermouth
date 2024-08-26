@@ -118,6 +118,11 @@ func registerController(r interface{}, controller interface{}) {
 		controllerInformation := NewControllerInformation()
 		controllerInformation.Path = fullPath
 		controllerInformation.Transaction = transaction == "true"
+		coverUrl := field.Tag.Get("cover_url")
+		if coverUrl != "" {
+			urlCoverCache.Store(coverUrl, fullPath)
+		}
+
 		// tag整理成map
 		tagMap := make(map[string]string)
 		for _, tag := range strings.Split(string(field.Tag), " ") {

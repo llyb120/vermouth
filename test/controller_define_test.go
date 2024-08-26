@@ -11,9 +11,10 @@ import (
 )
 
 type TestController struct {
-	_           interface{}                                                   `path:"/api" name:"test"`
-	TestMethod  func(a int, b int, params map[string]interface{}) interface{} `method:"GET" path:"/test" params:"a,b,params"`
-	TestMethod2 func(req *Request) interface{}                                `method:"POST" path:"/test2" params:"req"`
+	_              interface{}                                                                   `path:"/api" name:"test"`
+	TestMethod     func(a int, b int, params map[string]interface{}, c *gin.Context) interface{} `method:"GET" path:"/test" params:"a,b,params"`
+	TestMethodMock func(a int, b int, params map[string]interface{}, c *gin.Context) interface{} `method:"GET" path:"/testMock" params:"a,b,params" cover_url:"/api/test"`
+	TestMethod2    func(req *Request) interface{}                                                `method:"POST" path:"/test2" params:"req" `
 
 	TestError func() interface{} `method:"GET" path:"/test3"`
 
@@ -30,6 +31,7 @@ type TestController struct {
 func NewTestController() *TestController {
 	return &TestController{
 		TestMethod:         DoTestMethod,
+		TestMethodMock:     DoTestMethod,
 		TestMethod2:        DoTestMethod2,
 		TestError:          DoTestError,
 		TestTransaction:    DoTestTransaction,
@@ -50,7 +52,8 @@ func DoTestError() interface{} {
 	panic(err)
 }
 
-func DoTestMethod(a int, b int, params map[string]interface{}) interface{} {
+func DoTestMethod(a int, b int, params map[string]interface{}, c *gin.Context) interface{} {
+	fmt.Println(c.Request.URL)
 	return gin.H{
 		"message": "Hello, Gin!" + strconv.Itoa(a+b),
 	}
