@@ -23,9 +23,53 @@ type convertorDefinition struct {
 
 func Convert(src interface{}, dst interface{}) {
 	// 提取对应的转换器
-	// srcType := reflect.TypeOf(src)
-	// dstType := reflect.TypeOf(dst)
+	srcType := reflect.TypeOf(src)
+	dstType := reflect.TypeOf(dst)
+	srcInfo := GetTypeInfo(srcType)
+	dstInfo := GetTypeInfo(dstType)
+
+	for _, fieldInfo := range srcInfo.Fields {
+		dstFieldInfo, ok := dstInfo.Fields[fieldInfo.Name]
+		if !ok {
+			continue
+		}
+		// 如果是结构体，则递归转换
+		if fieldInfo.realType == reflect.Struct && dstFieldInfo.realType == reflect.Struct {
+			// 先取目标的值
+			dstFieldValue, err := dstFieldInfo.Get(dst)
+			if err != nil {
+				continue
+			}
+			srcFieldValue, err := fieldInfo.Get(src)
+			if err != nil {
+				continue
+			}
+			// 如果src是nil，则目标也设置为nil
+			if srcFieldValue == nil {
+				dstFieldValue = nil
+				dstFieldInfo.Set(dst, dstFieldValue)
+				continue
+			} else {
+				dstFieldValue = reflect.New(dstFieldInfo.Type).Interface()
+				dstFieldInfo.Set(dst, dstFieldValue)
+				Convert(srcFieldValue, dstFieldValue)
+			}
+		} else {
+			fieldValue, err := fieldInfo.Get(src)
+			if err != nil {
+				continue
+			}
+			fieldInfo.Set(dst, fieldValue)
+		}
+	}
+
 }
+
+// 结构体 -> Map
+// func structToMap(src interface{}, dst *map[string]interface{}) {
+// 	srcType := reflect.TypeOf(src)
+// 	srcValue := reflect.ValueOf(src)
+// }
 
 func RegisterConvertor(src interface{}, dst interface{}) {
 	srcType := reflect.TypeOf(src)

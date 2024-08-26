@@ -8,7 +8,7 @@ import (
 )
 
 type TypeCache struct {
-	mu    sync.RWMutex
+	mu    *sync.RWMutex
 	types map[reflect.Type]*TypeInfo
 }
 
@@ -19,7 +19,8 @@ type TypeInfo struct {
 
 type FieldInfo struct {
 	*reflect.StructField
-	Offset uintptr
+	realType reflect.Kind
+	Offset   uintptr
 }
 
 type MethodInfo struct {
@@ -28,10 +29,22 @@ type MethodInfo struct {
 }
 
 var cache = &TypeCache{
+	mu:    &sync.RWMutex{},
 	types: make(map[reflect.Type]*TypeInfo),
 }
 
+func getReadType(t reflect.Type) reflect.Type {
+	if t.Kind() == reflect.Ptr {
+		// 指针转换为实际类型
+		t = t.Elem()
+		return getReadType(t)
+	} else {
+		return t
+	}
+}
+
 func GetTypeInfo(t reflect.Type) *TypeInfo {
+	t = getReadType(t)
 	cache.mu.RLock()
 	info, exists := cache.types[t]
 	cache.mu.RUnlock()
@@ -61,6 +74,7 @@ func getFields(t reflect.Type) map[string]*FieldInfo {
 		field := t.Field(i)
 		fields[field.Name] = &FieldInfo{
 			StructField: &field,
+			realType:    getReadType(field.Type).Kind(),
 			Offset:      field.Offset,
 		}
 	}
@@ -148,16 +162,22 @@ func SetFieldByPtr(ptr unsafe.Pointer, value interface{}) {
 	switch value.(type) {
 	case int:
 		*(*int)(ptr) = value.(int) //int(val.Int())
+	case *int:
+		*(*int)(ptr) = *value.(*int)
 	case string:
 		*(*string)(ptr) = value.(string)
+	case *string:
+		*(*string)(ptr) = *value.(*string)
 	case bool:
 		*(*bool)(ptr) = value.(bool)
+	case *bool:
+		*(*bool)(ptr) = *value.(*bool)
 	}
 	// // 可以根据需要添加更多类型
 	// default:
 	// 	// 对于其他类型，使用反射设置值
 	// 	reflect.NewAt(t.Type, fieldPtr).Elem().Set(reflect.ValueOf(value))
-	// }	
+	// }
 }
 
 // 优化 SetField 函数，使用缓存和指针操作
@@ -192,4 +212,19 @@ func GetField(obj interface{}, name string) (interface{}, error) {
 		return nil, errors.New("字段不存在: " + name)
 	}
 	return fieldInfo.Get(obj)
+}
+
+func (t *MethodInfo) Call(obj interface{}, args ...interface{}) []interface{} {
+	in := make([]reflect.Value, len(args)+1)
+	in[0] = reflect.ValueOf(obj)
+	for i, arg := range args {
+		in[i+1] = reflect.ValueOf(arg)
+	}
+
+	rets := t.Method.Func.Call(in)
+	realRet := make([]interface{}, len(rets))
+	for i, ret := range rets {
+		realRet[i] = ret.Interface()
+	}
+	return realRet
 }

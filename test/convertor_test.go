@@ -39,3 +39,10 @@ func TestConvertorImpl(t *testing.T) {
 	//dest := generated.ConvertSourceToDestination(&src)
 	//fmt.Println(dest)
 }
+
+func TestDynamicConvert(t *testing.T) {
+	var a support.MyStruct
+	var b support.MyStruct2
+	vermouth.Convert(&a, &b)
+	fmt.Println(b)
+}

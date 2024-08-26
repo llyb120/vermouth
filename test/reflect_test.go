@@ -37,6 +37,12 @@ func TestReflect(t *testing.T) {
 		}
 	})
 
+	t.Run("Cache Test", func(t *testing.T) {
+		t1 := reflect.TypeOf(user)
+		t2 := reflect.TypeOf(user)
+		t.Errorf("t1 == t2: %v", t1 == t2)
+	})
+
 	// 比较结果
 	t.Run("Benchmark Comparison", func(t *testing.T) {
 		directResult := testing.Benchmark(func(b *testing.B) {
