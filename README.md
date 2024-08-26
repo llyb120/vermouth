@@ -13,8 +13,8 @@ type TestController struct {
 	// 定义该控制器的总路径
     _ interface{} `path:"/api"`
 
-	// 方法
-	TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
+    // 方法
+    TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
 }
 
 // 例如
@@ -23,11 +23,11 @@ type TestController struct {
 
 // 定义控制器
 func TestMethod(a int, b int) interface{} {
-	return "Hello, Gin! " + strconv.Itoa(a) + strconv.Itoa(b)
+    return "Hello, Gin! " + strconv.Itoa(a) + strconv.Itoa(b)
 }
 
 func NewTestController() *TestController {
-	return &TestController{
+    return &TestController{
         TestMethod: TestMethod,
     }
 }
@@ -47,25 +47,25 @@ vermonth.RegisterController(r, NewTestController())
 
 ```go
 type TestController struct {
-	TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
-	TestMethod2 func(req *Request) interface{} `method:"GET" path:"/test" params:"req"`
+    TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
+    TestMethod2 func(req *Request) interface{} `method:"GET" path:"/test" params:"req"`
 }
 
 type Request struct {
-	A int `json:"a"`
-	B int `json:"b"`
+    A int `json:"a"`
+    B int `json:"b"`
 }
 
 func TestMethod(a int, b int) interface{} {
-	return gin.H{
-		"message": "Hello, Gin!" + strconv.Itoa(a+b),
-	}
+    return gin.H{
+        "message": "Hello, Gin!" + strconv.Itoa(a+b),
+    }
 }
 
 func TestMethod2(req *Request) interface{} {
-	return gin.H{
-		"message": "Hello, Gin!" + strconv.Itoa(req.A+req.B),
-	}
+    return gin.H{
+        "message": "Hello, Gin!" + strconv.Itoa(req.A+req.B),
+    }
 }
 ```
 
@@ -75,16 +75,16 @@ func TestMethod2(req *Request) interface{} {
 ```go
 // 公共参数注入
 RegisterParamsFunc("/**", func() map[string]interface{} {
-	return map[string]interface{}{
-		"token": "123",
-	}
+    return map[string]interface{}{
+        "token": "123",
+    }
 })
 
 
 func DoTestParams(token string) interface{} {
-	return gin.H{   
-		"token": token,
-	}
+    return gin.H{   
+        "token": token,
+    }
 }	
 
 ```
@@ -95,12 +95,12 @@ func DoTestParams(token string) interface{} {
 
 ```go
 type TestParams struct {
-	Name string `json:"name" binding:"required" message:"required=姓名不能为空"` // 如果只有一个校验的话，required=可以不写
-	Age int `json:"age" binding:",gt=18" message:"年龄必须大于18"` // 如果只有一个校验的话，required=可以不写
+    Name string `json:"name" binding:"required" message:"required=姓名不能为空"` // 如果只有一个校验的话，required=可以不写
+    Age int `json:"age" binding:",gt=18" message:"年龄必须大于18"` // 如果只有一个校验的话，required=可以不写
 }
 
 type TestController struct {
-	TestParams func(params *TestParams) interface{} `method:"GET" path:"/test" params:"params=query" ` //params=query 表示参数从query中获取（包括了表单方式），params=body 表示参数从json中获取，可以不写，默认情况下，POST请求会从body中获取参数，GET请求会从query中获取参数
+    TestParams func(params *TestParams) interface{} `method:"GET" path:"/test" params:"params=query" ` //params=query 表示参数从query中获取（包括了表单方式），params=body 表示参数从json中获取，可以不写，默认情况下，POST请求会从body中获取参数，GET请求会从query中获取参数
 }
 ```
 
@@ -110,26 +110,26 @@ type TestController struct {
 
 ```go
 type TestParams struct {
-	Name string `json:"name" binding:"required" message:"required=姓名不能为空"` // 如果只有一个校验的话，required=可以不写
-	Age int `json:"age" binding:",gt=18" message:"年龄必须大于18"` // 如果只有一个校验的话，required=可以不写
+    Name string `json:"name" binding:"required" message:"required=姓名不能为空"` // 如果只有一个校验的话，required=可以不写
+    Age int `json:"age" binding:",gt=18" message:"年龄必须大于18"` // 如果只有一个校验的话，required=可以不写
 }
 
 // 该结构体内所有以Test开头的方法，都会被认为是自定义校验方法，vermouth会自动调用
 func(t *TestParams) TestA() error {
-	// 例如某些数据在插入时，需要检查数据库中是否有同名数据
-	count := db.QueryRow("SELECT * FROM user WHERE name = ?", t.Name)
-	if count > 0 {
-		return errors.New("姓名不能重复")
-	}
-	return nil
+    // 例如某些数据在插入时，需要检查数据库中是否有同名数据
+    count := db.QueryRow("SELECT * FROM user WHERE name = ?", t.Name)
+    if count > 0 {
+        return errors.New("姓名不能重复")
+    }
+    return nil
 }
 
 // 自定义校验方法，可以传入ctx参数，ctx参数中包含了当前请求的所有信息
 func(t *TestParams) TestB(ctx *vermouth.Context) error {
-	if t.Age < 18 {
-		return errors.New("年龄必须大于18")
-	}
-	return nil
+    if t.Age < 18 {
+        return errors.New("年龄必须大于18")
+    }
+    return nil
 }
 ```
 
@@ -145,8 +145,9 @@ func(t *TestParams) TestB(ctx *vermouth.Context) error {
 ```go
 type TestController struct {
     _ interface{} `path:"/api" `
-	TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b" cover_url:"/api/test2"`
-	// 当访问/api/test2时，会自动转发一份相同的到/api/test
+	
+    TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b" cover_url:"/api/test2"`
+    // 当访问/api/test2时，会自动转发一份相同的到/api/test
 }
 
 var r = gin.Default()
@@ -163,26 +164,26 @@ vermouth支持AOP，可以通过正则表达式来匹配方法，并执行相应
 // 控制器定义的时候，可以用 _ 为控制器附加名字，如果不附加，则控制器自动使用控制器类型名作为名字
 type TestController struct {
     _ interface{} `path:"/api" `
-	TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
+    TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
 }
 
 // 注册切面
 // 第二个参数为切面优先级，越大的切面会越后面调用
 // 例如同时有0和1两个切面，则调用顺序为 0 -> 1
 vermonth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
-	fmt.Println("aop called")
+    fmt.Println("aop called")
 
-	// 在控制器启动前，你可以随意修改参数
-	aopContext.Arguments[0] = 2
+    // 在控制器启动前，你可以随意修改参数
+    aopContext.Arguments[0] = 2
 
-	// 调用方法
-	aopContext.Call()
+    // 调用方法
+    aopContext.Call()
 
-	// 修改返回值，例如你可以定义所有接口的通用返回
-	aopContext.Result[0] = map[string]interface{}{
-		"success": true,
-		"data": aopContext.Result[0],
-	}
+    // 修改返回值，例如你可以定义所有接口的通用返回
+    aopContext.Result[0] = map[string]interface{}{
+        "success": true,
+        "data": aopContext.Result[0],
+    }
 })
 ```
 
@@ -193,46 +194,46 @@ vermonth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 // 自定义异常处理类
 // 定义一个结构体来表示自定义错误
 type MyError struct {
-	Message string
-	Code    int
+    Message string
+    Code    int
 }
 
 func NewMyError(code int, message string) *MyError {
-	return &MyError{
-		Message: message,
-		Code:    code,
-	}
+    return &MyError{
+        Message: message,
+        Code:    code,
+    }
 }
 
 // 实现error接口的Error方法
 func (e *MyError) Error() string {
-	return fmt.Sprintf("Error %d: %s", e.Code, e.Message)
+    return fmt.Sprintf("Error %d: %s", e.Code, e.Message)
 }
 
 // 注册全局错误处理器
 vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
-	defer func() {
-		if err := recover(); err != nil {
-			// 判断是否是自定义错误
-			if myErr, ok := err.(*MyError); ok {
-				aopContext.GinContext.JSON(myErr.Code, myErr.Message)
-				return
-			}
-			// 不是我的异常，抛回给中间件处理
-			panic(err)
-		}
-	}()
-	aopContext.Call()
+    defer func() {
+        if err := recover(); err != nil {
+            // 判断是否是自定义错误
+            if myErr, ok := err.(*MyError); ok {
+                aopContext.GinContext.JSON(myErr.Code, myErr.Message)
+                return
+            }
+            // 不是我的异常，抛回给中间件处理
+            panic(err)
+        }
+    }()
+    aopContext.Call()
 })
 
 // 控制器中抛出异常
 func DoTestError() interface{} {
-	err := NewMyError(400, "test error")
-	if true {
-		panic(err)
-	}
-	// 正常的业务逻辑
-	return "ok"
+    err := NewMyError(400, "test error")
+    if true {
+        panic(err)
+    }
+    // 正常的业务逻辑
+    return "ok"
 }
 ```
 
@@ -243,18 +244,18 @@ func DoTestError() interface{} {
 type TestController struct {
     _ interface{} `path:"/api" `
 
-	// 事务
-	TestTransaction func(tx *sql.Tx) interface{} `method:"GET" path:"/test4" params:"tx" transaction:"true"`
+    // 事务
+    TestTransaction func(tx *sql.Tx) interface{} `method:"GET" path:"/test4" params:"tx" transaction:"true"`
 }
 
 func DoTestTransaction(tx *sql.Tx) interface{} {
-	tx.Exec("INSERT INTO user (name, age) VALUES (?, ?)", "John", 20)
-	// do something...
-	if true {
-		// 当需要回滚事务的时候，只要抛出异常即可
-		panic("xxx")
-	}
-	return nil
+    tx.Exec("INSERT INTO user (name, age) VALUES (?, ?)", "John", 20)
+    // do something...
+    if true {
+        // 当需要回滚事务的时候，只要抛出异常即可
+        panic("xxx")
+    }
+    return nil
 }
 ```
 
@@ -277,23 +278,23 @@ vermouth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
 ### 协程上下文
 - 协程上下文，可以让你在协程中获取当前的上下文信息。
 - 例如，你可以通过协程上下文来获取当前的请求信息，或者在协程中传递一些上下文信息。
-- 多适用于在controller和service调用中传递上下文信息。
+- 多适用于在controller和service调用中传递上下文信息，例如不适合入参的当前登录用户。
 
 ```go
 tl := vermouth.NewThreadLocal()
 
 func a(){
-	tl.Set("test")
+    tl.Set("test")
 }
 
 func b(){
-	s := tl.Get()
-	fmt.Println(s) // test
+    s := tl.Get()
+    fmt.Println(s) // test
 }
 
 func main(){
-	a()
-	b()
+    a()
+    b()
 }
 
 ```
@@ -302,9 +303,9 @@ func main(){
 - 子协程可以有独立的上下文环境，不会覆盖父协程的上下文。
 ```go
 tl.Go(func(){
-	fmt.Println(tl.Get()) // test
-	tl.Set("test2")
-	fmt.Println(tl.Get()) // test2
+    fmt.Println(tl.Get()) // test
+    tl.Set("test2")
+    fmt.Println(tl.Get()) // test2
 })
 
 fmt.Println(tl.Get()) // test
