@@ -299,10 +299,15 @@ func main(){
 ```
 
 - 你可以在子协程中，通过tl.Go(func(){})来创建子协程，子协程会继承父协程的上下文。
+- 子协程可以有独立的上下文环境，不会覆盖父协程的上下文。
 ```go
 tl.Go(func(){
 	fmt.Println(tl.Get()) // test
+	tl.Set("test2")
+	fmt.Println(tl.Get()) // test2
 })
+
+fmt.Println(tl.Get()) // test
 ```	
 
 ### 转换器

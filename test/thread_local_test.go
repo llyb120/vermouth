@@ -1,10 +1,10 @@
 package test
 
 import (
-	"testing"
 	"github.com/llyb120/vermouth"
 	"github.com/stretchr/testify/assert"
 	"sync"
+	"testing"
 )
 
 func TestThreadLocal(t *testing.T) {
@@ -13,11 +13,16 @@ func TestThreadLocal(t *testing.T) {
 	assert.Equal(t, "test", tl.Get())
 
 	var wg sync.WaitGroup
-		wg.Add(1)
+	wg.Add(1)
 	tl.Go(func() {
 		defer wg.Done()
 		assert.Equal(t, "test", tl.Get())
+
+		tl.Set("test2")
+		assert.Equal(t, "test2", tl.Get())
 	})
+
+	assert.Equal(t, "test", tl.Get())
 
 	wg.Wait()
 }
