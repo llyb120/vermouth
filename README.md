@@ -101,13 +101,14 @@ type TestParams struct {
 }
 
 type TestController struct {
-    TestParams func(params *TestParams) interface{} `method:"GET" path:"/test" params:"params=query" ` //params=query 表示参数从query中获取（包括了表单方式），params=body 表示参数从json中获取，可以不写，默认情况下，POST请求会从body中获取参数，GET请求会从query中获取参数
+    //params=query 表示参数从query中获取，params=json 表示参数从json中获取，可以不写，默认情况下，POST请求会从json中获取参数，GET请求会从query中获取参数
+    TestParams func(params *TestParams) interface{} `method:"GET" path:"/test" params:"params=query" ` 
 }
 ```
 
 #### 自定义校验
-- 可以依然沿用gin的校验方式，注册自定义校验器。
-- 除此之外，vermonth还提供了自定义校验器，用于一些复杂的校验。
+- 因为vermouth基于Gin做增强，并不侵入Gin，所以可以依然沿用gin的校验方式，注册自定义校验器。
+- 除此之外，vermonth还提供了单独的校验器，用于一些复杂的校验。
 
 ```go
 type TestParams struct {
@@ -136,11 +137,12 @@ func(t *TestParams) TestB(ctx *vermouth.Context) error {
 
 
 #### 自定义参数解析
+- 在实际工作中，我们往往需要对参数进行变形，而根据单一原则，这类代码不适用写入service，所以vermouth支持自定义参数解析。
 - 待开发
 
 
 #### 渐进式覆盖
-- 在重构过往接口的时候，我们希望可以渐进式而不是一次性暴力替换。
+- 在重构过往接口的时候，我们希望可以渐进式而不是一次性暴力替换，暴力替换往往是生产事故的根源。
 - 重构后的接口应当和之前保持幂等，即调用两个接口应得到相同的结果。
 
 ```go
