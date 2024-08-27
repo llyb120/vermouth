@@ -14,13 +14,14 @@ type TestController struct {
     _ interface{} `path:"/api"`
 
     // 方法
+    // 使用Tag描述请求的类型、路径，以及需要参数注入的参数名
     TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b"`
 }
 
 // 例如
 // 访问 /api/test 则调用 TestMethod 方法
 
-
+// 以下为控制器实现
 // 定义控制器
 func TestMethod(a int, b int) interface{} {
     return "Hello, Gin! " + strconv.Itoa(a) + strconv.Itoa(b)
