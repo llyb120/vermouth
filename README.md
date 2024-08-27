@@ -143,14 +143,15 @@ func(t *TestParams) TestB(ctx *vermouth.Context) error {
 
 #### 渐进式覆盖
 - 在重构过往接口的时候，我们希望可以渐进式而不是一次性暴力替换，暴力替换往往是生产事故的根源。
-- 重构后的接口应当和之前保持幂等，即调用两个接口应得到相同的结果。
+- 重构后的接口应当和之前保持幂等，即调用两个接口应得到相同的结果（排除write类接口造成实际变动影响后）。
 
 ```go
 type TestController struct {
     _ interface{} `path:"/api" `
-	
+
+	// 当访问/api/test2时，会自动转发一份相同的到/api/test
     TestMethod func(a int, b int) interface{} `method:"GET" path:"/test" params:"a,b" cover_url:"/api/test2"`
-    // 当访问/api/test2时，会自动转发一份相同的到/api/test
+    
 }
 
 var r = gin.Default()
@@ -162,6 +163,8 @@ r.Use(vermonth.CoverUrl("../日志地址"))
 ### 切面
 
 vermouth支持AOP，可以通过正则表达式来匹配方法，并执行相应的AOP函数。
+- AOP的生效在Gin的middleware之后，Gin本身不会受到任何影响，vermouth只管理自己的控制器。
+- 利用切面可以实现许多通用的特性，例如，框架应当帮开发者抹平差异，使开发者专注于业务。
 
 ```go
 // 控制器定义的时候，可以用 _ 为控制器附加名字，如果不附加，则控制器自动使用控制器类型名作为名字
@@ -173,6 +176,7 @@ type TestController struct {
 // 注册切面
 // 第二个参数为切面优先级，越大的切面会越后面调用
 // 例如同时有0和1两个切面，则调用顺序为 0 -> 1
+// 请求可以使用*和**来进行匹配，例如/api/test*
 vermonth.RegisterAop("/**", 0, func(aopContext *vermouth.Context) {
     fmt.Println("aop called")
 
@@ -333,9 +337,9 @@ fieldInfo.Set(user, "newName")
 
 - 性能和GO原始的反射，以及直接赋值的基准测试。
 ```
-直接设置: 0.371 ns/op
-vermouth/reflect设置: 1.050 ns/op
-普通反射设置: 129.951 ns/op
+直接赋值: 0.371 ns/op
+vermouth/reflect赋值: 1.050 ns/op
+普通反射赋值: 129.951 ns/op
 比普通反射快了 111.89 倍
 ```
 
